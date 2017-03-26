@@ -4,22 +4,39 @@ environment:
   matrix:
     - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2015
       VSVER: Visual Studio 14 2015 Win64
+      JAVA_DIR: "C:\\Program Files\\Java\\jdk1.8.0"
+      PYTHON_DIR: "C:\\Python27"
+      PYTHON_VERSION: "2.7"
+      PYTHON_ARCH: "64"
     - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
       VSVER: Visual Studio 15 2017 Win64
+      JAVA_DIR: "C:\\Program Files\\Java\\jdk1.8.0"
+      PYTHON_DIR: "C:\\Python27"
+      PYTHON_VERSION: "2.7"
+      PYTHON_ARCH: "64"
 
 platform:
   - x64
+
+cache:
+  - C:\ProgramData\chocolatey\bin -> appveyor.yml
+  - C:\ProgramData\chocolatey\lib -> appveyor.yml
 
 configuration:
   - Release
 
 install:
+  - "set PATH=%PYTHON_DIR%;%PYTHON_DIR%\\Scripts;%PATH%"
+  - "pip install numpy ply Cython h5py pandas Jinja2 sphinx"
   - git submodule -q update --init
+  - "choco install swig --version 3.0.12 --yes --limit-output"
+  - "choco install ctags --yes --limit-output"
+  - "choco install snappy-driver-installer"  
 
 before_build:
   - md %APPVEYOR_BUILD_FOLDER%\build
   - cd %APPVEYOR_BUILD_FOLDER%\build
-  - cmake -G"%VSVER%" -DCMAKE_BUILD_TYPE=%CONFIGURATION% -DBUILD_META_EXAMPLES=OFF -DENABLE_TESTING=ON ..
+  - cmake -G"%VSVER%" -DCMAKE_BUILD_TYPE=%CONFIGURATION% -DBUILD_META_EXAMPLES=ON -DPythonModular=ON -DENABLE_TESTING=ON ..
   - cd ..
 
 build:
